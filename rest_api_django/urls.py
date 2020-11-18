@@ -5,5 +5,6 @@ from restApi import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    url(r"sign_up/", views.SignUp.as_view())
+    url(r"sign_up/", views.SignUp.as_view()),
+    url(r"login/", views.Login.as_view())
 ]

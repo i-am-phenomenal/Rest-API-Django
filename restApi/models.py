@@ -1,5 +1,4 @@
 from django.db import models
-
 # Create your models here.
 
 class User(models.Model): 
@@ -27,4 +26,4 @@ class UserTopicRelationship(models.Model):
     updatedAt = models.DateTimeField(auto_now=True)
     class Meta: 
         unique_together= ['userId', 'topicId']
-        
+
