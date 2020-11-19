@@ -2,15 +2,23 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 import json
 from .models import User
 import re
+from rest_framework.authtoken.models import Token 
+from django.contrib.auth import authenticate
 
-class SignUp(View):    
-
+class Utils(): 
     def contentTypeValid(self, contentType): 
         return contentType == "application/json"
+
+    def getBadResponse(self, message): 
+        return {
+            "errorMessage": message 
+        }
+
+class SignUp(View, Utils):    
 
     def getBadResponseObject(self, errorMessage): 
         errorResponse = {
@@ -51,7 +59,8 @@ class SignUp(View):
 
 
     def post(self, request): 
-        if self.contentTypeValid(request.content_type) and self.allParametersPresent(request.body.decode("utf-8")):
+        utils = Utils()
+        if utils.contentTypeValid(request.content_type) and self.allParametersPresent(request.body.decode("utf-8")):
             parameters = request.body.decode("utf-8")
             parameters = json.loads(parameters)
             if self.validateEmail(parameters["email"]): 
@@ -73,6 +82,25 @@ class SignUp(View):
             return HttpResponse(json.dumps(allObjects), status=200)
 
 
-class Login(View): 
+class Login(View, Utils): 
     def post(self, request): 
-        pass
+        utils = Utils()
+        if utils.contentTypeValid(request.content_type): 
+            params = request.body.decode("utf-8")
+            params = json.loads(params)
+            emailId =params["emailId"]
+            plainTextPassword = params["password"]
+            if emailId is None or plainTextPassword is None: 
+                return HttpResponse(
+                    json.dumps(
+                        utils.getBadResponse("One or more parameters missing")
+                    ),
+                    status=500
+                )
+            else: 
+                user = User.objects.get(emailId = emailId)
+                if check_password(plainTextPassword, user.password): 
+                        token, _ =Token.objects.get_or_create(user=user)
+                        # print(token, '1111111111111')
+                return HttpResponse("Ok")
+

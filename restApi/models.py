@@ -1,7 +1,8 @@
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser
 # Create your models here.
 
-class User(models.Model): 
+class User(AbstractBaseUser, models.Model):     
     id = models.AutoField(primary_key=True)
     emailId =models.CharField(max_length=30, default="")
     fullName= models.CharField(max_length=30)
@@ -9,6 +10,8 @@ class User(models.Model):
     age = models.IntegerField()
     insertedAt = models.DateTimeField(auto_now=True)
     updatedAt = models.DateTimeField(auto_now=True)
+    REQUIRED_FIELDS = ('password',)
+    USERNAME_FIELD = 'id'
 
 
 class Topic(models.Model):
