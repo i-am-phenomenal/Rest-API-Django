@@ -126,3 +126,5 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 AUTH_USER_MODEL = 'restApi.User'
+
+TOKEN_EXPIRE_AFTER_SECONDS = 3600

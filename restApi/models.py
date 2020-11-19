@@ -16,7 +16,7 @@ class User(AbstractBaseUser, models.Model):
 
 class Topic(models.Model):
     id = models.AutoField(primary_key=True)
-    topicName =models.CharField(max_length=40)
+    topicName =models.CharField(max_length=40, unique=True)
     shortDesc = models.CharField(max_length=40)
     insertedAt = models.DateTimeField(auto_now=True)
     updatedAt = models.DateTimeField(auto_now=True)

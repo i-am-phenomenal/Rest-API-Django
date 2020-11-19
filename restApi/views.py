@@ -4,19 +4,14 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password, check_password
 import json
-from .models import User
+from .models import User, Topic, UserTopicRelationship
 import re
 from rest_framework.authtoken.models import Token 
 from django.contrib.auth import authenticate
-
-class Utils(): 
-    def contentTypeValid(self, contentType): 
-        return contentType == "application/json"
-
-    def getBadResponse(self, message): 
-        return {
-            "errorMessage": message 
-        }
+from datetime import timedelta
+from django.utils import timezone
+from django.conf import settings
+from .utils import Utils
 
 class SignUp(View, Utils):    
 
@@ -100,7 +95,145 @@ class Login(View, Utils):
             else: 
                 user = User.objects.get(emailId = emailId)
                 if check_password(plainTextPassword, user.password): 
-                        token, _ =Token.objects.get_or_create(user=user)
-                        # print(token, '1111111111111')
-                return HttpResponse("Ok")
+                    token, _ =Token.objects.get_or_create(user=user)
+                    return HttpResponse(
+                        json.dumps(
+                            {
+                                "token" : token.key,
+                                "userEmailId": user.emailId
+                            }
+                        )
+                    )
+                else: 
+                    return HttpResponse(
+                        json.dumps(
+                            utils.getBadResponse("Passwords dont match !")
+                        ),
+                        status=500
+                    )
 
+class Authentication():
+
+    def isExpired(self, token): 
+        timeElapsed = timezone.now() - token.created
+        leftTime = timedelta(seconds =settings.TOKEN_EXPIRE_AFTER_SECONDS) - timeElapsed
+        return leftTime
+
+    def checkIfTokenExpired(self, token):
+        return self.isExpired(token)< timedelta(seconds=0)
+
+    def checkIfTokenExists(self, token): 
+        tokenObject = Token.objects.get(key=token)
+        if tokenObject is None: 
+            return False
+        else:
+            return True
+        
+
+    def checkIfValidToken(self, token): 
+        tokenObject = Token.objects.get(key=token)
+        if self.checkIfTokenExpired(tokenObject):
+            tempUser = tokenObject.user
+            tokenObject.delete()
+            token = Token.objects.create(user=tempUser)
+            return token
+        else: 
+            return tokenObject.key
+
+
+class TopicOfInterest(View, Utils, Authentication): 
+
+    def getTopicByTopicName(self, topicName):
+        topic = Topic.objects.get(topicName = topicName.strip())
+        return topic
+
+    def post(self, request): 
+        utils = Utils()
+        auth = Authentication()
+        if "Authorization" in request.headers and utils.contentTypeValid(request.content_type): 
+            token = request.headers["Authorization"].split(" ")[1]
+            if auth.checkIfTokenExists(token): 
+                tokenObject = Token.objects.get(key=token)
+                if not auth.checkIfTokenExpired(tokenObject):
+                    params = request.body.decode("utf-8")
+                    params = json.loads(params)
+                    topicObject = Topic(
+                        topicName=params["topicName"],
+                        shortDesc = params["shortDesc"]
+                    )
+                    topicObject.save()
+                    return HttpResponse(
+                        json.dumps(
+                            utils.getGoodResponse("Topic Added Successfully !")
+                        )
+                    )
+                else:
+                    return HttpResponse(
+                        json.dumps(
+                            utils.getBadResponse("Token Expired")
+                        ),
+                        status=500
+                    )
+            else: 
+                return HttpResponse(
+                        json.dumps(
+                            utils.getBadResponse("Invalid Token !")
+                        ),
+                        status=500
+                    )
+        else: 
+            return HttpResponse(
+                json.dumps(
+                    utils.getBadResponse("Invalid Headers !")
+                ),
+                status=500
+            )
+
+class UserTopic(View, Utils, Authentication): 
+
+    def getCurrentLoggedInUser(self, token):
+        tokenObject = Token.objects.get(key=token)
+        return tokenObject.user
+    
+    def post(self, request): 
+        authentication = Authentication()
+        utils = Utils()
+        topic = TopicOfInterest()
+        if "Authorization" in request.headers and utils.contentTypeValid(request.content_type):
+            token = request.headers["Authorization"].split(" ")[1]
+            if authentication.checkIfTokenExists(token):
+                token = authentication.checkIfValidToken(token)
+                params = utils.getDecodedParams(request.body)
+                topic = topic.getTopicByTopicName(params["topicName"])
+                if topic is None: 
+                    return HttpResponse(
+                        json.dumps(
+                            utils.getBadResponse("Topic does not exist !")
+                        ),
+                        status=500
+                    )
+                currentUser = self.getCurrentLoggedInUser(token)
+                userTopicRelationship = UserTopicRelationship(
+                    userId = currentUser,
+                    topicId = topic
+                )
+                userTopicRelationship.save()
+                return HttpResponse(
+                    json.dumps(
+                        utils.getGoodResponse("Added topic for the given user !")
+                    )
+                )
+            else: 
+                return HttpResponse(
+                    json.dumps(
+                        utils.getBadResponse("Invalid Token !")
+                    ),
+                    status=500
+                )
+        else:
+            return HttpResponse(
+                json.dumps(
+                    utils.getBadResponse("Invalid Headers !")
+                ),
+                status=500
+            )

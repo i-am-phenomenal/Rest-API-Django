@@ -1,13 +1,22 @@
 import re
+import json 
 
-def contentTypeValid(contentType):
-    pass
 
-def getBadResponseObject(errorMessage): 
-    pass
+class Utils(): 
+    def contentTypeValid(self, contentType): 
+        return contentType == "application/json"
 
-def allParametersPresent(params): 
-    pass
+    def getBadResponse(self, message): 
+        return {
+            "errorMessage": message 
+        }
 
-def performValidationOnEmail(emailId): 
-    
+    def getGoodResponse(self, message): 
+        return {
+            "response": message
+        }
+
+    def getDecodedParams(self, requestBody): 
+        params = requestBody.decode("utf-8")
+        params = json.loads(params)
+        return params
