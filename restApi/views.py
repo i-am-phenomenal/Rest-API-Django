@@ -8,10 +8,10 @@ from .models import User, Topic, UserTopicRelationship
 import re
 from rest_framework.authtoken.models import Token 
 from django.contrib.auth import authenticate
-from datetime import timedelta
-from django.utils import timezone
-from django.conf import settings
 from .utils import Utils
+from .error_class import CustomException
+from .authentication import Authentication
+from functools import wraps
 
 class SignUp(View, Utils):    
 
@@ -77,9 +77,10 @@ class SignUp(View, Utils):
             return HttpResponse(json.dumps(allObjects), status=200)
 
 
-class Login(View, Utils): 
+class Login(View, Utils, Authentication): 
     def post(self, request): 
         utils = Utils()
+        authentication = Authentication()
         if utils.contentTypeValid(request.content_type): 
             params = request.body.decode("utf-8")
             params = json.loads(params)
@@ -96,6 +97,8 @@ class Login(View, Utils):
                 user = User.objects.get(emailId = emailId)
                 if check_password(plainTextPassword, user.password): 
                     token, _ =Token.objects.get_or_create(user=user)
+                    if authentication.checkIfTokenExpired(token):
+                        token = authentication.renewTokenIfExpired(token)
                     return HttpResponse(
                         json.dumps(
                             {
@@ -112,33 +115,7 @@ class Login(View, Utils):
                         status=500
                     )
 
-class Authentication():
 
-    def isExpired(self, token): 
-        timeElapsed = timezone.now() - token.created
-        leftTime = timedelta(seconds =settings.TOKEN_EXPIRE_AFTER_SECONDS) - timeElapsed
-        return leftTime
-
-    def checkIfTokenExpired(self, token):
-        return self.isExpired(token)< timedelta(seconds=0)
-
-    def checkIfTokenExists(self, token): 
-        tokenObject = Token.objects.get(key=token)
-        if tokenObject is None: 
-            return False
-        else:
-            return True
-        
-
-    def checkIfValidToken(self, token): 
-        tokenObject = Token.objects.get(key=token)
-        if self.checkIfTokenExpired(tokenObject):
-            tempUser = tokenObject.user
-            tokenObject.delete()
-            token = Token.objects.create(user=tempUser)
-            return token
-        else: 
-            return tokenObject.key
 
 
 class TopicOfInterest(View, Utils, Authentication): 
@@ -146,6 +123,41 @@ class TopicOfInterest(View, Utils, Authentication):
     def getTopicByTopicName(self, topicName):
         topic = Topic.objects.get(topicName = topicName.strip())
         return topic
+
+    def validateHeaders(function): 
+        @wraps(function)
+        def innerFunction(*args, **kwargs): 
+            utils = Utils()
+            return function(*args, **kwargs)
+            # for arg in args:
+            #     print(arg, "33333333333")
+            # return function(*args, **kwargs)
+            # if utils.contentTypeValid(args[1].content_type):
+            #     response = function(*args, **kwargs)
+            #     return response
+            # else: 
+            #     raise CustomException("The request Headers are not valid !")
+        return innerFunction()
+
+    def validateToken(function): 
+        @wraps(function)
+        def innerFunction(*args, **kwargs): 
+            authentication = Authentication()
+            allArgs = []
+            if "Authorization" in args[1].headers: 
+                token = args[1].headers["Authorization"].split(" ")[1]
+                if authentication.checkIfTokenExists(token): 
+                    tokenObject = Token.objects.get(key=token)
+                    if not authentication.checkIfTokenExpired(tokenObject): 
+                        resp = function(*args, **kwargs)
+                        return resp
+                    else: 
+                        raise CustomException("Auth Token already expired")
+                else: 
+                    raise CustomException("Token does not exist !")
+            else: 
+                raise CustomException("Invalid Headers")
+        return innerFunction
 
     def post(self, request): 
         utils = Utils()
@@ -188,6 +200,12 @@ class TopicOfInterest(View, Utils, Authentication):
                 ),
                 status=500
             )
+    
+    @validateToken
+    @validateHeaders
+    def delete(self, request):
+        return HttpResponse("Ok")
+        
 
 class UserTopic(View, Utils, Authentication): 
 
@@ -202,7 +220,7 @@ class UserTopic(View, Utils, Authentication):
         if "Authorization" in request.headers and utils.contentTypeValid(request.content_type):
             token = request.headers["Authorization"].split(" ")[1]
             if authentication.checkIfTokenExists(token):
-                token = authentication.checkIfValidToken(token)
+                # token = authentication.checkIfValidToken(token)
                 params = utils.getDecodedParams(request.body)
                 topic = topic.getTopicByTopicName(params["topicName"])
                 if topic is None: 
