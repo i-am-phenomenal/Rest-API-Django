@@ -125,22 +125,15 @@ class TopicOfInterest(View, Utils, Authentication):
         return topic
 
     def validateHeaders(function): 
-        @wraps(function)
         def innerFunction(*args, **kwargs): 
             utils = Utils()
-            return function(*args, **kwargs)
-            # for arg in args:
-            #     print(arg, "33333333333")
-            # return function(*args, **kwargs)
-            # if utils.contentTypeValid(args[1].content_type):
-            #     response = function(*args, **kwargs)
-            #     return response
-            # else: 
-            #     raise CustomException("The request Headers are not valid !")
-        return innerFunction()
+            if utils.contentTypeValid(args[1].content_type): 
+                return function(*args, **kwargs)
+            else:
+                raise CustomException("The Content Type is not valid")
+        return innerFunction
 
     def validateToken(function): 
-        @wraps(function)
         def innerFunction(*args, **kwargs): 
             authentication = Authentication()
             allArgs = []
@@ -204,6 +197,18 @@ class TopicOfInterest(View, Utils, Authentication):
     @validateToken
     @validateHeaders
     def delete(self, request):
+        utils = Utils()
+        params = request.body.decode("utf-8")
+        params = json.loads(params)
+        nameOrId = params["topic_name_or_id"]
+        if type(nameOrId) == int: 
+            topicObject = Topic.objects.get(id=nameOrId)
+            topicObject.delete()
+            return HttpResponse(
+                json.dumps(
+                    utils.getGoodResponse("Deleted Topic Successfully !")
+                )
+            )
         return HttpResponse("Ok")
         
 
