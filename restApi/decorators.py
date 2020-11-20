@@ -65,3 +65,24 @@ class Decorators():
             else:
                 return function(*args, **kwargs)
         return innerFunction
+
+    def validateEventParams(self, function):
+        def innerFunction(*args, **kwargs):
+            params = args[1].body.decode("utf-8")
+            params = json.loads(params)
+            possibleKeys = [
+                "eventDescription",
+                "eventName", 
+                "eventType",
+                "eventDate",
+                "eventDuration",
+                "eventHost",
+                "eventLocation"
+            ]
+            for key, value in params.items():
+                if key not in possibleKeys:
+                    raise CustomException("One or more keys are missing !")
+                else:
+                    pass
+            return function(*args, **kwargs)
+        return innerFunction

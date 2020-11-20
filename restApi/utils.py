@@ -1,6 +1,6 @@
 import re
 import json 
-
+from datetime import datetime
 
 class Utils(): 
     def contentTypeValid(self, contentType): 
@@ -20,3 +20,10 @@ class Utils():
         params = requestBody.decode("utf-8")
         params = json.loads(params)
         return params
+
+    #Should be of the format  DD-MM-YYYY
+    def getFormattedDateTime(self, strDate):
+        strDate = strDate + ", 00:00:00"
+        now = datetime.now()
+        currentDate = now.strptime(strDate, "%dd-%mm-%YYYY, %H:%M:%S")
+        print(currentDate, "111111111")

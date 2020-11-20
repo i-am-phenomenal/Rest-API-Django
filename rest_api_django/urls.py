@@ -8,5 +8,6 @@ urlpatterns = [
     url(r"sign_up/", views.SignUp.as_view()),
     url(r"login/", views.Login.as_view()),
     url(r"user_topics/", views.UserTopic.as_view()),
-    url(r"topics/", views.TopicOfInterest.as_view())
+    url(r"topics/", views.TopicOfInterest.as_view()),
+    url(r"events/", views.Event.as_view())
 ]

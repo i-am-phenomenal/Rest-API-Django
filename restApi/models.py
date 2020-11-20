@@ -30,3 +30,22 @@ class UserTopicRelationship(models.Model):
     class Meta: 
         unique_together= ['userId', 'topicId']
 
+
+class Event(models.Model):
+    id = models.AutoField(primary_key=True)
+    eventDescription = models.CharField(max_length=100),
+    eventName = models.CharField(max_length=50, unique=True)
+    eventType =models.CharField(max_length=30)
+    eventDate = models.DateTimeField(auto_now=True)
+    eventDuration = models.CharField(max_length=20)
+    eventHost = models.CharField(max_length=30)
+    eventLocation = models.CharField(max_length=30)
+    insertedAt = models.DateTimeField(auto_now=True)
+    updatedAt = models.DateTimeField(auto_now=True)
+
+class UserEventRelationship(models.Model):
+    id= models.AutoField(primary_key=True)
+    userId = models.ForeignKey(User, on_delete=models.CASCADE)
+    eventId = models.ForeignKey(Event, on_delete=models.CASCADE)
+    insertedAt = models.DateTimeField(auto_now=True)
+    updatedAt = models.DateTimeField(auto_now=True)

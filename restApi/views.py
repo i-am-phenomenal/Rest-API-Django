@@ -4,7 +4,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password, check_password
 import json
-from .models import User, Topic, UserTopicRelationship
+from .models import User, Topic, UserTopicRelationship, Event
 import re
 from rest_framework.authtoken.models import Token 
 from django.contrib.auth import authenticate
@@ -384,4 +384,23 @@ class UserTopic(View, Utils, Authentication, Decorators):
                     utils.getBadResponse("User does not have any topics ")
                 )
             )
+        return HttpResponse("Ok")
+
+
+class Event(View, Utils, Decorators):
+    decorators = Decorators()
+
+    @decorators.validateToken
+    @decorators.validateHeaders
+    @decorators.validateEventParams
+    def post(self, request):
+        utils = Utils()
+        params =request.body.decode("utf-8")
+        params = json.loads(params)
+        eventObject = Event(
+            eventDescription = params["eventDescription"],
+            eventName= params["eventName"],
+            eventType = params["eventType"],
+            eventDate = utils.getFormattedDateTime(params["eventDate"])
+        )
         return HttpResponse("Ok")
