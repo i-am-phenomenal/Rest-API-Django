@@ -274,17 +274,16 @@ class TopicOfInterest(View, Utils, Authentication, Decorators):
                     )
                 )
 
-        # if type(queryParam) == int: 
-            
-        # return HttpResponse("Ok")
-        
 
-class UserTopic(View, Utils, Authentication): 
+class UserTopic(View, Utils, Authentication, Decorators): 
+    decorators = Decorators()
 
     def getCurrentLoggedInUser(self, token):
         tokenObject = Token.objects.get(key=token)
         return tokenObject.user
-    
+
+    @decorators.validateToken
+    @decorators.validateHeaders    
     def post(self, request): 
         authentication = Authentication()
         utils = Utils()
@@ -326,3 +325,63 @@ class UserTopic(View, Utils, Authentication):
                 ),
                 status=500
             )
+
+    @decorators.validateToken
+    @decorators.validateHeaders
+    @decorators.containsAllKeys
+    def delete(self, request): 
+        utils = Utils()
+        params = request.body.decode("utf-8")
+        params = json.loads(params)
+        try:
+            userObject = User.objects.get(id=params["userId"])
+            topicObject= Topic.objects.get(id=params["topicId"])
+            userTopicRelationship = UserTopicRelationship.objects.get(
+                userId=userObject, 
+                topicId =topicObject
+            )
+            userTopicRelationship.delete()
+            return HttpResponse(
+                json.dumps(
+                    utils.getGoodResponse(
+                        "User Topic relationship sucessfully deleted !"
+                    )
+                )
+            )
+        except (UserTopicRelationship.DoesNotExist, User.DoesNotExist, Topic.DoesNotExist):
+            return HttpResponse(
+                json.dumps(
+                    utils.getBadResponse(
+                        "The relationship between user and topic does not exist !"
+                    )
+                )
+            )
+
+    @decorators.validateToken
+    @decorators.validateHeaders
+    @decorators.checkIfContainsUserId
+    def get(self, request):
+        utils = Utils()
+        userId = request.GET.get("userId")
+        try: 
+            userTopicRelationships = list(UserTopicRelationship.objects.filter(userId=userId).all())
+            topicIds = [userTopicRelationship.topicId.id  for userTopicRelationship in userTopicRelationships]
+            allTopics = list(Topic.objects.filter(id__in = topicIds).all())
+            formattedTopics = [
+                {
+                    "topicName" : topic.topicName,
+                    "shortDesc" : topic.shortDesc
+                }
+                for topic in allTopics
+            ]
+            return HttpResponse(
+                json.dumps(formattedTopics),
+                status=200
+            )
+        except UserTopicRelationship.DoesNotExist: 
+            return HttpResponse(
+                json.dumps(
+                    utils.getBadResponse("User does not have any topics ")
+                )
+            )
+        return HttpResponse("Ok")
