@@ -11,7 +11,7 @@ from django.contrib.auth import authenticate
 from .utils import Utils
 from .error_class import CustomException
 from .authentication import Authentication
-from functools import wraps
+from .decorators import Decorators
 
 class SignUp(View, Utils):    
 
@@ -118,39 +118,16 @@ class Login(View, Utils, Authentication):
 
 
 
-class TopicOfInterest(View, Utils, Authentication): 
+class TopicOfInterest(View, Utils, Authentication, Decorators): 
 
-    def getTopicByTopicName(self, topicName):
-        topic = Topic.objects.get(topicName = topicName.strip())
-        return topic
+    decorators = Decorators()
 
-    def validateHeaders(function): 
-        def innerFunction(*args, **kwargs): 
-            utils = Utils()
-            if utils.contentTypeValid(args[1].content_type): 
-                return function(*args, **kwargs)
-            else:
-                raise CustomException("The Content Type is not valid")
-        return innerFunction
+    def getTopicByTopicId(self, topicId):
+        return Topic.objects.get(id=topicId)
 
-    def validateToken(function): 
-        def innerFunction(*args, **kwargs): 
-            authentication = Authentication()
-            allArgs = []
-            if "Authorization" in args[1].headers: 
-                token = args[1].headers["Authorization"].split(" ")[1]
-                if authentication.checkIfTokenExists(token): 
-                    tokenObject = Token.objects.get(key=token)
-                    if not authentication.checkIfTokenExpired(tokenObject): 
-                        resp = function(*args, **kwargs)
-                        return resp
-                    else: 
-                        raise CustomException("Auth Token already expired")
-                else: 
-                    raise CustomException("Token does not exist !")
-            else: 
-                raise CustomException("Invalid Headers")
-        return innerFunction
+    def getTopicByTopicName(self, topicName): 
+        topicName = topicName.strip()
+        return Topic.objects.get(topicName=topicName)
 
     def post(self, request): 
         utils = Utils()
@@ -193,23 +170,113 @@ class TopicOfInterest(View, Utils, Authentication):
                 ),
                 status=500
             )
-    
-    @validateToken
-    @validateHeaders
+
+    @decorators.validateToken
+    @decorators.validateHeaders
+    @decorators.validateIfTopicExists
+    def put(self, request):
+        utils = Utils()
+        params = request.body.decode("utf-8")
+        params = json.loads(params)
+        topicName = params["topicName"].strip()
+        topicObject = Topic.objects.get(topicName = topicName)
+        if "shortDesc" in params: 
+            shortDesc = params["shortDesc"].strip()
+            topicObject.topicName = topicName
+            topicObject.shortDesc = shortDesc
+            topicObject.save()
+            return HttpResponse(
+                json.dumps(
+                    utils.getGoodResponse("Topic Updated Successfully !")
+                )
+            )
+        else: 
+            topicObject.topicName = topicName
+            topicObject.save()
+            return HttpResponse(
+                json.dumps(
+                    utils.getGoodResponse("Topic Updated Successfully !")
+                )
+            )
+
+    @decorators.validateToken
+    @decorators.validateHeaders
     def delete(self, request):
         utils = Utils()
         params = request.body.decode("utf-8")
         params = json.loads(params)
         nameOrId = params["topic_name_or_id"]
         if type(nameOrId) == int: 
-            topicObject = Topic.objects.get(id=nameOrId)
+            topicObject = self.getTopicByTopicId(nameOrId)
             topicObject.delete()
             return HttpResponse(
                 json.dumps(
                     utils.getGoodResponse("Deleted Topic Successfully !")
                 )
             )
-        return HttpResponse("Ok")
+        else: 
+            try: 
+                converted = int(nameOrId)
+                topicObject = self.getTopicByTopicId(converted)
+                topicObject.delete()
+            except ValueError: 
+                topicObject = self.getTopicByTopicName(nameOrId)
+                topicObject.delete()
+            finally: 
+                return HttpResponse(
+                    json.dumps(
+                        utils.getGoodResponse("Deleted topic successfully !")
+                    ),
+                    status=200
+                )
+
+    @decorators.validateToken
+    @decorators.validateHeaders
+    def get(self, request): 
+        queryParam = request.GET.get("name_or_id")
+        try: 
+            converted = int(queryParam)
+            topicObject = self.getTopicByTopicId(converted)
+            if topicObject is not None:
+                response = {
+                    "topicName": topicObject.topicName,
+                    "shortDesc": topicObject.shortDesc
+                }
+                return HttpResponse(
+                    json.dumps(
+                        response
+                    ),
+                    status=200
+                )
+            else: 
+                return HttpResponse(
+                    json.dumps(
+                        utils.getBadResponse("Topic Does not exist")
+                    )
+                )
+        except ValueError: 
+            topicObject = Topic.objects.get(topicName=queryParam.strip())
+            if topicObject is not None: 
+                response = {
+                    "topicName": topicObject.topicName,
+                    "shortDesc": topicObject.shortDesc
+                }
+                return HttpResponse(
+                    json.dumps(
+                        response
+                    ),
+                    status=200
+                )
+            else: 
+                return HttpResponse(
+                    json.dumps(
+                        utils.getBadResponse("Topic Does not exist")
+                    )
+                )
+
+        # if type(queryParam) == int: 
+            
+        # return HttpResponse("Ok")
         
 
 class UserTopic(View, Utils, Authentication): 
@@ -225,7 +292,6 @@ class UserTopic(View, Utils, Authentication):
         if "Authorization" in request.headers and utils.contentTypeValid(request.content_type):
             token = request.headers["Authorization"].split(" ")[1]
             if authentication.checkIfTokenExists(token):
-                # token = authentication.checkIfValidToken(token)
                 params = utils.getDecodedParams(request.body)
                 topic = topic.getTopicByTopicName(params["topicName"])
                 if topic is None: 
