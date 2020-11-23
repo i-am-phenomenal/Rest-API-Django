@@ -27,3 +27,13 @@ class Utils():
         now = datetime.now()
         currentDate = now.strptime(strDate, "%d-%m-%Y, %H:%M:%S")
         return currentDate
+
+    def getParamsFromArgs(self, args):
+        params = args[1].body.decode("utf-8")
+        params = json.loads(params)
+        return params
+
+    def getParamsFromRequest(self, request):
+        params = request.body.decode("utf-8")
+        params = json.loads(params)
+        return params

@@ -49,3 +49,6 @@ class UserEventRelationship(models.Model):
     eventId = models.ForeignKey(Event, on_delete=models.CASCADE)
     insertedAt = models.DateTimeField(auto_now=True)
     updatedAt = models.DateTimeField(auto_now=True)
+    
+    class Meta: 
+        unique_together = ("userId", "eventId")

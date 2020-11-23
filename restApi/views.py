@@ -504,5 +504,10 @@ class EventView(View, Utils, Decorators):
             status=200
         )
 
+    # @decorators.validateToken
+    # @decorators.validateHeaders
+    # def put(self, request): 
+
+
 
         
