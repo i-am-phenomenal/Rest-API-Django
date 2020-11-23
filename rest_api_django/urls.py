@@ -9,5 +9,5 @@ urlpatterns = [
     url(r"login/", views.Login.as_view()),
     url(r"user_topics/", views.UserTopic.as_view()),
     url(r"topics/", views.TopicOfInterest.as_view()),
-    url(r"events/", views.Event.as_view())
+    url(r"events/", views.EventView.as_view())
 ]

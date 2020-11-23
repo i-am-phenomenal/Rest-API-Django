@@ -116,8 +116,6 @@ class Login(View, Utils, Authentication):
                     )
 
 
-
-
 class TopicOfInterest(View, Utils, Authentication, Decorators): 
 
     decorators = Decorators()
@@ -387,7 +385,7 @@ class UserTopic(View, Utils, Authentication, Decorators):
         return HttpResponse("Ok")
 
 
-class Event(View, Utils, Decorators):
+class EventView(View, Utils, Decorators):
     decorators = Decorators()
 
     @decorators.validateToken
@@ -398,9 +396,19 @@ class Event(View, Utils, Decorators):
         params =request.body.decode("utf-8")
         params = json.loads(params)
         eventObject = Event(
-            eventDescription = params["eventDescription"],
             eventName= params["eventName"],
+            eventDescription = params["eventDescription"],
             eventType = params["eventType"],
-            eventDate = utils.getFormattedDateTime(params["eventDate"])
+            eventDate = utils.getFormattedDateTime(params["eventDate"]),
+            eventDuration = params["eventDuration"],
+            eventHost = params["eventHost"],
+            eventLocation = params["eventLocation"]
         )
-        return HttpResponse("Ok")
+        eventObject.save()
+        return HttpResponse(
+            json.dumps(
+                utils.getGoodResponse(
+                    "Created Event Successfully with name {eventName}".format(eventName=eventObject.eventName)
+                )
+            )
+        )

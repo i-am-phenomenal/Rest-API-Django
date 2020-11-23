@@ -25,5 +25,5 @@ class Utils():
     def getFormattedDateTime(self, strDate):
         strDate = strDate + ", 00:00:00"
         now = datetime.now()
-        currentDate = now.strptime(strDate, "%dd-%mm-%YYYY, %H:%M:%S")
-        print(currentDate, "111111111")
+        currentDate = now.strptime(strDate, "%d-%m-%Y, %H:%M:%S")
+        return currentDate
