@@ -66,6 +66,41 @@ class Decorators():
                 return function(*args, **kwargs)
         return innerFunction
 
+    # def validateParamsLength(function):
+    #     def outerFunction(self, outerDecorator):
+    #         def innerFunction(*args, **kwargs):
+    #             params = args[1].GET.get("eventIdOrName")
+    #             if params is None: 
+    #                 raise CustomException("More than one params passed")
+    #             else: 
+    #                 return function(*args, **kwargs)
+                # params = json.loads(params)
+                # if len(params) == 1:
+                #     return function(*args, **kwargs)
+                # else: 
+                #     raise CustomException("More than one params passed")
+        #     return innerFunction
+        # return outerFunction
+    
+    # WIP; Second order decorator 
+    # @validateParamsLength
+    def validateIfParamIsValid(self, function):
+        def innerFunction(*args, **kwargs):
+            params = args[1].body.decode("utf-8")
+            params = json.loads(params)
+            for key, _ in params.keys():
+                if key == "eventIdOrName":
+                    return function(*args, **kwargs)
+                else:
+                    return HttpResponse(
+                        json.dumps(
+                            {
+                                "msg": "Invalid Args passed"
+                            }
+                        )
+                    )
+        return innerFunction
+
     def validateEventParams(self, function):
         def innerFunction(*args, **kwargs):
             params = args[1].body.decode("utf-8")

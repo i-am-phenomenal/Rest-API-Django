@@ -33,7 +33,7 @@ class UserTopicRelationship(models.Model):
 
 class Event(models.Model):
     id = models.AutoField(primary_key=True)
-    eventDescription = models.CharField(max_length=100),
+    eventDescription = models.CharField(max_length=100, default="")
     eventName = models.CharField(max_length=50, unique=True)
     eventType =models.CharField(max_length=30)
     eventDate = models.DateTimeField(auto_now=True)
