@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from django.conf.urls import url
-from restApi import views, user_event_views
+from restApi import views, user_event_views, seed_data
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -11,4 +11,5 @@ urlpatterns = [
     url(r"topics/", views.TopicOfInterest.as_view()),
     url(r"events", views.EventView.as_view()),
     url(r"user/event/", user_event_views.UserEventViews.as_view()),
+    url(r"seed_data", seed_data.populateTables)
 ]
