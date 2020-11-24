@@ -408,7 +408,7 @@ class EventView(View, Utils, Decorators):
         return HttpResponse(
             json.dumps(
                 utils.getGoodResponse(
-                    "Created Event Successfully with name {eventName}".format(eventName=eventObject.eventName)
+                "Created Event Successfully with name {eventName}".format(eventName=eventObject.eventName)
                 )
             )
         )

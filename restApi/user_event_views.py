@@ -1,20 +1,23 @@
-from django.shortcuts import render
 from django.http import HttpResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.hashers import make_password, check_password
 import json
 from .models import User, Event, UserEventRelationship
-import re
 from rest_framework.authtoken.models import Token 
-from django.contrib.auth import authenticate
 from .utils import Utils
-from .error_class import CustomException
 from .authentication import Authentication
 from .decorators import Decorators
+from .userUtils import UserUtils
 
-class UserEventViews(View, Utils):
+class UserEventViews(View, UserUtils, Utils):
     decorators = Decorators()
+
+    def getEventByEventNameOrId(self, eventNameOrId):
+        if type(eventNameOrId) == int: 
+            return Event.objects.get(id=eventNameOrId)
+        elif type(eventNameOrId) == str and eventNameOrId.isnumeric():
+            return Event.objects.get(id=eventNameOrId)
+        elif type(eventNameOrId) == str:
+            return Event.objects.get(eventName = eventNameOrId.strip())
 
     def validateIfParamsValid(function): 
         utils = Utils()
@@ -68,8 +71,28 @@ class UserEventViews(View, Utils):
     @validateIfParamsValid
     @validateIfUserAndEventPresent
     def post(self, request): 
-        # userEventRelationship = UserEventRelationship(
-        #     userId = 
-        # )
-        #WIP
-        return HttpResponse("Ok")
+        utils = Utils()
+        userUtils = UserUtils()
+        params = request.body.decode("utf-8")
+        params = json.loads(params)
+        userObject = userUtils.getUserByUserNameOrId(params["user"])
+        eventObject = self.getEventByEventNameOrId(params["event"])
+        try: 
+            _ = UserEventRelationship.objects.filter(userId=userObject.id, eventId=eventObject.id).exists()
+            return HttpResponse(
+                json.dumps(
+                    utils.getBadResponse("User Event relationship already exists !")
+                ),
+                status=200
+            )
+        except UserEventRelationship.DoesNotExist: 
+            userEventRelationship = UserEventRelationship(
+                userId=userObject,
+                eventId=eventObject
+            )
+            userEventRelationship.save()
+            return HttpResponse(
+                json.dumps(
+                    utils.getGoodResponse("User Added to event successfully !")
+                )
+            )
