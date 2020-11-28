@@ -11,5 +11,6 @@ urlpatterns = [
     url(r"topics/", views.TopicOfInterest.as_view()),
     url(r"events", views.EventView.as_view()),
     url(r"user/event/", user_event_views.UserEventViews.as_view()),
-    url(r"seed_data", seed_data.populateTables)
+    url(r"seed_data", seed_data.populateTables),
+    url(r"delete_all", seed_data.deleteAllRecordsFromAllTables)
 ]
