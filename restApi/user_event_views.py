@@ -195,7 +195,7 @@ class UserEventViews(View, UserUtils, Utils):
                     )
                 )
             else: 
-                HttpResponse(
+                return HttpResponse(
                     json.dumps(
                         utils.getBadResponse("Event with the given ID does not exist !")
                     )
@@ -212,9 +212,99 @@ class UserEventViews(View, UserUtils, Utils):
                     )
                 )
             else: 
-                HttpResponse(
+                return HttpResponse(
                     json.dumps(
                         utils.getBadResponse("Event with the given ID does not exist !")
                     )
                 )
+
+    def getUserEventRelationship(self, emailId, eventName): 
+        userObject = User.objects.get(emailId=emailId)
+        eventObject = Event.objects.get(eventName=eventName)
+        return UserEventRelationship.objects.get(userId=userObject, eventId=eventObject)
+
+    def removeAllUsersFromEvent(self, eventObject): 
+        utils = Utils()
+        try: 
+            UserEventRelationship.objects.filter(eventId=eventObject).all().delete()
+            return HttpResponse(
+                json.dumps(
+                    utils.getGoodResponse("Removed all users from event")
+                )
+            )
+        except Exception as e: 
+            print(e)
+            return HttpResponse(
+                json.dumps(
+                    utils.getBadResponse("There was an error while trying to remove users")
+                )
+            )
+
+
+        
+
+
+
+    @decorators.validateToken
+    @decorators.validateHeaders        
+    def delete(self, request): 
+        utils = Utils()
+        params = request.GET.get("params")
+        params = json.loads(params)
+        if len(params) == 2:
+            emailId = params["emailId"]
+            eventName = params["eventName"]
+            if self.userWithEmailIdExists(emailId) and self.eventExistsByEventName(eventName):
+                userEventRelationship = self.getUserEventRelationship(emailId, eventName)
+                if userEventRelationship is None: 
+                    return HttpResponse(
+                        json.dumps(
+                            utils.getBadResponse("User Event Relationship does not exist")
+                        ),
+                        status=200
+                    )
+                else:
+                    userEventRelationship.delete()
+                    return HttpResponse(
+                        json.dumps(
+                            utils.getGoodResponse("User has unsubscribed to the event !")
+                        )
+                    )
+            else: 
+                return HttpResponse(
+                        json.dumps(
+                            utils.getBadResponse("User or Event does not exist ")
+                        ),
+                        status=500
+                    )
+        else: 
+            paramKey = list(params.keys())[0]
+            value = params[paramKey]
+            if paramKey == "eventId": 
+                """ Remove all users with this event ID """ 
+                if self.eventExistsByEventId(value):
+                    eventObject = self.getEventByEventNameOrId(value)
+                    self.removeAllUsersFromEvent(eventObject)
+                else: 
+                    return HttpResponse(
+                        json.dumps(
+                            utils.getBadResponse("Event does not exist")
+                        ),
+                        status=200
+                    )
+            elif paramKey == "eventName": 
+                """ Remove all users with given event Name """ 
+                if self.eventExistsByEventName(value): 
+                    eventObject = self.getEventByEventNameOrId(value)
+                    self.removeAllUsersFromEvent(eventObject)
+                else: 
+                    return HttpResponse(
+                        json.dumps(
+                            utils.getBadResponse("Event does not exist")
+                        ),
+                        status=200
+                    )
+
+
+
 
