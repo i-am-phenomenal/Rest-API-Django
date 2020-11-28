@@ -102,11 +102,8 @@ class UserEventViews(View, UserUtils, Utils):
         time = ":".join([str(datetime.hour), str(datetime.minute), str(datetime.second)])
         return date + " " + time
 
-    def getAllEventsforCurrentUser(self, userId): 
-        userId = int(userId)
-        userObject = User.objects.get(id=userId)
-        eventIds = list(UserEventRelationship.objects.filter(userId=userObject).values_list("eventId", flat=True))
-        formattedEvents = [
+    def getFormattedEvents(self, eventIds): 
+        formatted = [
             {
                 "eventDescription": event.eventDescription,
                 "eventName": event.eventName,
@@ -118,18 +115,106 @@ class UserEventViews(View, UserUtils, Utils):
             }
             for event in Event.objects.filter(id__in = eventIds)
         ]
+        return formatted
+
+    def getEventsForUserByEmailId(self, emailId): 
+        userObject = User.objects.get(emailId=emailId)
+        eventIds = list(
+            UserEventRelationship.objects.filter(userId=userObject).values_list("eventId", flat=True)   
+        )
+        return self.getFormattedEvents(eventIds)
+
+    def getAllEventsforCurrentUser(self, userId): 
+        userId = int(userId)
+        userObject = User.objects.get(id=userId)
+        eventIds = list(UserEventRelationship.objects.filter(userId=userObject).values_list("eventId", flat=True))
+        formattedEvents = self.getFormattedEvents(eventIds)
         return formattedEvents
-        
+
+    def userWithEmailIdExists(self, emailId):
+        return User.objects.filter(emailId=emailId).exists()
+
+    def eventExistsByEventId(self, eventId): 
+        return Event.objects.filter(id=eventId).exists()
+
+    def eventExistsByEventName(self, eventName): 
+        return Event.objects.filter(eventName=eventName).exists()
+
+    def getUsersWhoSubscribedToAnEvent(self, eventId):
+        eventObject = self.getEventByEventNameOrId(eventId)
+        userIds = list(
+            UserEventRelationship.objects.filter(
+            eventId=eventObject
+        ).values_list("userId", flat=True))
+        formatted = [
+            {
+                "fullName" : user.fullName,
+                "emailId" : user.emailId,
+                "age": user.age
+            }
+            for user in User.objects.filter(id__in = userIds)
+        ]
+        return formatted
 
     @decorators.validateToken
     @decorators.validateHeaders
     def get(self, request): 
+        utils = Utils()
         params =  request.GET.get("params")
         params = json.loads(params)
-        for key, value in params.items(): 
-            if key == "userId":
-                events = self.getAllEventsforCurrentUser(value)
+        paramKeys = list(params.keys())[0]
+        value = params[paramKeys]
+        if paramKeys == "userId":
+            """ Get all events the user is going to attend """
+            events = self.getAllEventsforCurrentUser(value)
+            return HttpResponse(
+                json.dumps(events)
+            )
+        
+        elif paramKeys == "emailId":
+            """ Get all events the user is going to attend """
+            if self.userWithEmailIdExists(value):
+                events = self.getEventsForUserByEmailId(value)
                 return HttpResponse(
                     json.dumps(events)
                 )
-        return HttpResponse("Ok")
+            else: 
+                return HttpResponse(
+                    json.dumps(
+                        utils.getBadResponse("User with the given email ID does not exist !")
+                    )
+                )
+
+        elif paramKeys == "eventId": 
+            """ Get all Users who will attend the given event """
+            if self.eventExistsByEventId(value):
+                users = self.getUsersWhoSubscribedToAnEvent(value)
+                return HttpResponse(
+                    json.dumps(
+                        users
+                    )
+                )
+            else: 
+                HttpResponse(
+                    json.dumps(
+                        utils.getBadResponse("Event with the given ID does not exist !")
+                    )
+                )
+
+        elif paramKeys == "eventName": 
+            """ Get all Users who will attend the given event """
+            if self.eventExistsByEventName(value):
+                eventObject = Event.objects.get(eventName= value)
+                users = self.getUsersWhoSubscribedToAnEvent(value)
+                return HttpResponse(
+                    json.dumps(
+                        users
+                    )
+                )
+            else: 
+                HttpResponse(
+                    json.dumps(
+                        utils.getBadResponse("Event with the given ID does not exist !")
+                    )
+                )
+
