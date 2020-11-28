@@ -45,9 +45,7 @@ class SignUp(View, Utils):
                     "fullName": user.fullName,
                     "age": user.age,
                     "emailId": user.emailId,
-                    "password": user.password,
-                    # "insertedAt": user.insertedAt,
-                    # "updatedAt": user.updatedAt
+                    "password": user.password
                 }
             )
         return formattedRecords

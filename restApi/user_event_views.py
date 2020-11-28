@@ -77,18 +77,18 @@ class UserEventViews(View, UserUtils, Utils):
         params = json.loads(params)
         userObject = userUtils.getUserByUserNameOrId(params["user"])
         eventObject = self.getEventByEventNameOrId(params["event"])
-        try: 
-            _ = UserEventRelationship.objects.filter(userId=userObject.id, eventId=eventObject.id).exists()
+        userEventRelationshipExists = UserEventRelationship.objects.filter(userId=userObject, eventId=eventObject).exists()
+        if userEventRelationshipExists: 
             return HttpResponse(
                 json.dumps(
                     utils.getBadResponse("User Event relationship already exists !")
                 ),
                 status=200
             )
-        except UserEventRelationship.DoesNotExist: 
+        else:
             userEventRelationship = UserEventRelationship(
-                userId=userObject,
-                eventId=eventObject
+            userId=userObject,
+            eventId=eventObject
             )
             userEventRelationship.save()
             return HttpResponse(
@@ -96,3 +96,40 @@ class UserEventViews(View, UserUtils, Utils):
                     utils.getGoodResponse("User Added to event successfully !")
                 )
             )
+
+    def getFormattedDateTime(self, datetime): 
+        date = "/".join([str(datetime.year), str(datetime.month), str(datetime.day)])
+        time = ":".join([str(datetime.hour), str(datetime.minute), str(datetime.second)])
+        return date + " " + time
+
+    def getAllEventsforCurrentUser(self, userId): 
+        userId = int(userId)
+        userObject = User.objects.get(id=userId)
+        eventIds = list(UserEventRelationship.objects.filter(userId=userObject).values_list("eventId", flat=True))
+        formattedEvents = [
+            {
+                "eventDescription": event.eventDescription,
+                "eventName": event.eventName,
+                "eventType": event.eventType,
+                "eventDate": self.getFormattedDateTime(event.eventDate),
+                "eventDuration": event.eventDuration,
+                "eventHost": event.eventHost,
+                "eventLocation": event.eventLocation
+            }
+            for event in Event.objects.filter(id__in = eventIds)
+        ]
+        return formattedEvents
+        
+
+    @decorators.validateToken
+    @decorators.validateHeaders
+    def get(self, request): 
+        params =  request.GET.get("params")
+        params = json.loads(params)
+        for key, value in params.items(): 
+            if key == "userId":
+                events = self.getAllEventsforCurrentUser(value)
+                return HttpResponse(
+                    json.dumps(events)
+                )
+        return HttpResponse("Ok")
