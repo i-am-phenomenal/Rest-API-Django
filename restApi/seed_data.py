@@ -35,6 +35,13 @@ def populateUserTable():
             id=iter
         )
         userObject.save()
+    myUserObject = User(
+        emailId = "chat29aditya@gmail.com",
+        fullName = "Aditya Chaturvedi",
+        password = getPasswordHash("pass"),
+        age = 200
+    )
+    myUserObject.save()
 
 def populateTopicsTable(): 
     for iter in range(0, 20): 
