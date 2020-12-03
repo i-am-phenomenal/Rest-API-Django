@@ -4,6 +4,7 @@ from rest_framework.authtoken.models import Token
 import json 
 from .error_class import CustomException
 from .models import User, Topic
+from django.http import HttpResponse
 
 class Decorators():
 
@@ -122,7 +123,20 @@ class Decorators():
             return function(*args, **kwargs)
         return innerFunction
 
-    def validateBasicAuthToken(self, function):
+    def validateIfUserIsAdmin(self, function):
+        utils = Utils()
         def innerFunction(referenceToCurrentObj, request): 
-            return function(referenceToCurrentObj, request)
+            params = utils.getParamsFromRequest(request)
+            userObject = User.objects.get(emailId=params["emailId"])
+            if userObject.isAdmin:
+                return function(referenceToCurrentObj, request)
+            else: 
+                return HttpResponse(
+                    json.dumps(
+                        utils.getBadResponse(
+                            "User is not an Admin. Hence cannot access this API"
+                        )
+                    ),
+                    status=500
+                )
         return innerFunction
