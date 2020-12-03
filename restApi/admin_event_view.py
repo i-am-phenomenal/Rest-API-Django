@@ -9,6 +9,23 @@ from .error_class  import CustomException
 class AdminEventView(View):
     decorators = Decorators()
 
+    def getListOfAllEvents(): 
+        allEvents = Event.objects.all()
+        allEvents = [
+            {
+                "eventName" : event.eventName,
+                "eventDescription": event.eventDescription,
+                "eventType": event.eventType,
+                "eventDate": event.eventDate,
+                "eventDuration": event.eventDuration,
+                "eventHost": event.eventHost,
+                "eventLocation": event.eventLocation
+            }
+            for event in allEvents
+        ]
+        return allEvents
+
+
     def checkIfValidParams(function):
         utils = Utils()
         def ifRequiredEventFieldsPresent(params): 
@@ -100,3 +117,73 @@ class AdminEventView(View):
             ),
             status=200
         )
+
+    def getEventDictByEvent(event): 
+        return   {
+            "eventName" : event.eventName,
+            "eventDescription": event.eventDescription,
+            "eventType": event.eventType,
+            "eventDate": event.eventDate,
+            "eventDuration": event.eventDuration,
+            "eventHost": event.eventHost,
+            "eventLocation": event.eventLocation
+        }  
+
+    def getEventByEventName(eventName): 
+        utils = Utils()
+        if Event.objects.filter(eventName=eventName).exists(): 
+            event = Event.objects.get(eventName=eventName)
+            return HttpResponse(
+                json.dumps(getEventDictByEvent(event))
+            )
+        else: 
+            return HttpResponse(
+                json.dumps(
+                    utils.getBadResponse("Event with given event name does not exist !")
+                ),
+                status=500
+            )
+
+    def getEventByEventId(eventId): 
+        if Event.objects.filter(id=eventId).exists():
+            event = Event.objects.get(id=eventId)
+            return HttpResponse(
+                json.dumps(getEventDictByEvent(event))
+            )
+        else: 
+            return HttpResponse(
+                json.dumps(
+                    utils.getBadResponse("Event with given event name does not exist !")
+                ),
+                status=500
+            )
+
+    def getEventsByParams(params):
+        if "eventName" in params: 
+            getEventByEventName(params["eventName"])
+        elif "eventId" in params: 
+            getEventByEventId(params["eventId"])
+        else:
+            return HttpResponse(
+                json.dumps(
+                    utils.getBadResponse("Invalid params ")
+                ),
+                status=500
+            )
+
+        
+    @decorators.validateIfUserIsAdmin
+    def get(self, request): 
+        #WIP testing
+        params = request.GET.get("params")
+        if params == "all": 
+            allEvents = getListOfAllEvents()
+            return HttpResponse(
+                json.dumps(
+                    allEvents
+                ),
+                status=200
+            )
+        else: 
+            decodedParams = params.decode("utf-8")
+            getEventsByParams(decodedParams)
