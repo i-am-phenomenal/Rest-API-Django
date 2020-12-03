@@ -11,18 +11,7 @@ class AdminEventView(View):
 
     def getListOfAllEvents(): 
         allEvents = Event.objects.all()
-        allEvents = [
-            {
-                "eventName" : event.eventName,
-                "eventDescription": event.eventDescription,
-                "eventType": event.eventType,
-                "eventDate": event.eventDate,
-                "eventDuration": event.eventDuration,
-                "eventHost": event.eventHost,
-                "eventLocation": event.eventLocation
-            }
-            for event in allEvents
-        ]
+        allEvents = [getEventDictByEvent(event) for event in allEvents ]
         return allEvents
 
 
