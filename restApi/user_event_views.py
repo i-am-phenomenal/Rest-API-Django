@@ -240,11 +240,6 @@ class UserEventViews(View, UserUtils, Utils):
                 )
             )
 
-
-        
-
-
-
     @decorators.validateToken
     @decorators.validateHeaders        
     def delete(self, request): 
@@ -304,7 +299,3 @@ class UserEventViews(View, UserUtils, Utils):
                         ),
                         status=200
                     )
-
-
-
-

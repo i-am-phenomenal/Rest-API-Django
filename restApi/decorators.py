@@ -121,3 +121,8 @@ class Decorators():
                     pass
             return function(*args, **kwargs)
         return innerFunction
+
+    def validateBasicAuthToken(self, function):
+        def innerFunction(referenceToCurrentObj, request): 
+            return function(referenceToCurrentObj, request)
+        return innerFunction

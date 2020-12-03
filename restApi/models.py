@@ -10,6 +10,7 @@ class User(AbstractBaseUser, models.Model):
     age = models.IntegerField()
     insertedAt = models.DateTimeField(auto_now=True)
     updatedAt = models.DateTimeField(auto_now=True)
+    isAdmin = models.BooleanField(default=False)
     REQUIRED_FIELDS = ('password',)
     USERNAME_FIELD = 'id'
 
@@ -52,3 +53,14 @@ class UserEventRelationship(models.Model):
     
     class Meta: 
         unique_together = ("userId", "eventId")
+
+
+class TopicEventRelationship(models.Model):
+    id=models.AutoField(primary_key=True)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    insertedAt = models.DateTimeField(auto_now=True)
+    updatedAt = models.DateTimeField(auto_now=True)
+
+    class Meta: 
+        unique_together= ("topic", "event")

@@ -1,10 +1,11 @@
 from django.contrib import admin
 from django.urls import path
 from django.conf.urls import url
-from restApi import views, user_event_views, seed_data, event_views
+from restApi import views, user_event_views, seed_data, event_views, admin_event_view, admin_view
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("add_admin/", admin_view.AdminView.as_view()),
+    path('admin/event/add', admin_event_view.AdminEventView.as_view()),
     url(r"sign_up/", views.SignUp.as_view()),
     url(r"login/", views.Login.as_view()),
     url(r"user_topics/", views.UserTopic.as_view()),
