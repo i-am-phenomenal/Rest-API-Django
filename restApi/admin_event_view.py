@@ -239,3 +239,6 @@ class AdminEventView(View):
         else: 
             return self.deleteEventByParams(params["event"])
         
+    @decorators.validateIfUserIsAdmin
+    def put(self, request): 
+        return HttpResponse("Ok")
