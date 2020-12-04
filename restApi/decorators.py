@@ -126,7 +126,11 @@ class Decorators():
     def validateIfUserIsAdmin(self, function):
         utils = Utils()
         def innerFunction(referenceToCurrentObj, request): 
-            params = utils.getParamsFromRequest(request)
+            params = request.GET.get("params")
+            if params is None: 
+                params = utils.getParamsFromRequest(request)
+            else:
+                params = json.loads(params)
             userObject = User.objects.get(emailId=params["emailId"])
             if userObject.isAdmin:
                 return function(referenceToCurrentObj, request)

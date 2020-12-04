@@ -37,3 +37,8 @@ class Utils():
         params = request.body.decode("utf-8")
         params = json.loads(params)
         return params
+
+    def convertDateTimeToString(self, datetime): 
+        date = "/".join([str(datetime.year), str(datetime.month), str(datetime.day)])
+        time = ":".join([str(datetime.hour), str(datetime.minute), str(datetime.second)])
+        return date + " " + time

@@ -9,9 +9,57 @@ from .error_class  import CustomException
 class AdminEventView(View):
     decorators = Decorators()
 
-    def getListOfAllEvents(): 
+    def deleteAllEvents(self): 
+        Event.objects.all().delete()
+
+    def deleteEventByEventId(self, eventId): 
+        utils = Utils()
+        try: 
+            eventObject = Event.objects.get(id=eventId)
+            eventObject.delete()
+            return HttpResponse(
+                json.dumps(
+                    utils.getGoodResponse("Deleted event with the given Id")
+                )
+            )
+        except Event.DoesNotExist as e: 
+            print("Exception -> ", e)
+            return HttpResponse(
+                json.dumps(
+                    utils.getBadResponse("Event with the given id does not exist !")
+                ),
+                status=400
+            )
+
+    def deleteEventByEventName(self, eventName):
+        utils = Utils()
+        try: 
+            eventObject = Event.objects.get(eventName=eventName)
+            eventObject.delete()
+            return HttpResponse(
+                json.dumps(
+                    utils.getGoodResponse("Deleted event with the given name")
+                )
+            )
+        except Event.DoesNotExist as e: 
+            print(e)
+            return HttpResponse(
+                json.dumps(
+                    utils.getBadResponse("Event with the given name does not exist !")
+                ),
+                status=400
+            )
+
+    def deleteEventByParams(self, params): 
+        if "eventName" in params:
+            return self.deleteEventByEventName(params["eventName"])
+        elif  "eventId" in params: 
+            return self.deleteEventByEventId(params["eventId"])
+
+
+    def getListOfAllEvents(self): 
         allEvents = Event.objects.all()
-        allEvents = [getEventDictByEvent(event) for event in allEvents ]
+        allEvents = [self.getEventDictByEvent(event) for event in allEvents ]
         return allEvents
 
 
@@ -107,23 +155,24 @@ class AdminEventView(View):
             status=200
         )
 
-    def getEventDictByEvent(event): 
+    def getEventDictByEvent(self, event): 
+        utils = Utils()
         return   {
             "eventName" : event.eventName,
             "eventDescription": event.eventDescription,
             "eventType": event.eventType,
-            "eventDate": event.eventDate,
+            "eventDate": utils.convertDateTimeToString(event.eventDate),
             "eventDuration": event.eventDuration,
             "eventHost": event.eventHost,
             "eventLocation": event.eventLocation
         }  
 
-    def getEventByEventName(eventName): 
+    def getEventByEventName(self, eventName): 
         utils = Utils()
         if Event.objects.filter(eventName=eventName).exists(): 
             event = Event.objects.get(eventName=eventName)
             return HttpResponse(
-                json.dumps(getEventDictByEvent(event))
+                json.dumps(self.getEventDictByEvent(event))
             )
         else: 
             return HttpResponse(
@@ -133,11 +182,11 @@ class AdminEventView(View):
                 status=500
             )
 
-    def getEventByEventId(eventId): 
+    def getEventByEventId(self, eventId): 
         if Event.objects.filter(id=eventId).exists():
             event = Event.objects.get(id=eventId)
             return HttpResponse(
-                json.dumps(getEventDictByEvent(event))
+                json.dumps(self.getEventDictByEvent(event))
             )
         else: 
             return HttpResponse(
@@ -147,11 +196,11 @@ class AdminEventView(View):
                 status=500
             )
 
-    def getEventsByParams(params):
+    def getEventsByParams(self, params):
         if "eventName" in params: 
-            getEventByEventName(params["eventName"])
+            return self.getEventByEventName(params["eventName"])
         elif "eventId" in params: 
-            getEventByEventId(params["eventId"])
+            return self.getEventByEventId(params["eventId"])
         else:
             return HttpResponse(
                 json.dumps(
@@ -163,10 +212,10 @@ class AdminEventView(View):
         
     @decorators.validateIfUserIsAdmin
     def get(self, request): 
-        #WIP testing
         params = request.GET.get("params")
-        if params == "all": 
-            allEvents = getListOfAllEvents()
+        params = json.loads(params)
+        if params["event"] == "all": 
+            allEvents = self.getListOfAllEvents()
             return HttpResponse(
                 json.dumps(
                     allEvents
@@ -174,5 +223,19 @@ class AdminEventView(View):
                 status=200
             )
         else: 
-            decodedParams = params.decode("utf-8")
-            getEventsByParams(decodedParams)
+            return self.getEventsByParams(params["event"])
+
+    @decorators.validateIfUserIsAdmin
+    def delete(self, request): 
+        utils = Utils()
+        params = utils.getParamsFromRequest(request)
+        if params["event"] == "all": 
+            self.deleteAllEvents()
+            return HttpResponse(
+                json.dumps(
+                    utils.getGoodResponse("Deleted all Events succesfully !")
+                )
+            )
+        else: 
+            return self.deleteEventByParams(params["event"])
+        
