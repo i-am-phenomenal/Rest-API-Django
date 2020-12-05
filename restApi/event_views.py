@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from .error_class import CustomException
 from django.views import View
 from .authentication import Authentication
-from .decorators import Decorators
+from .Decorators.decorators import Decorators
 
 
 class EventView(View, Utils, Decorators):

@@ -6,20 +6,18 @@ from django.http import HttpResponse
 from rest_framework import authentication, permissions
 import json
 from .utils import Utils
+from .Decorators.admin_topic_event_decorators import AdminTopicEventDecorator
 
 class AdminTopicEventView(viewsets.ModelViewSet): 
     authentication_classes = [authentication.TokenAuthentication]
     serializer_class = AdminTopicEventSerializer
     # permission_classes = [permissions.IsAdminUser]
     queryset = TopicEventRelationship.objects.all()
+    adminTopicEventDecorators = AdminTopicEventDecorator()
 
     def get_queryset(self): 
-        # getTopicByTopicId = lambda topicId: Topic.objects.get(id=topicId)
-        # getEventByEventId = lambda eventId: Event.objects.get(id=eventId)
         formatted = []
         for topicEventRelationship in TopicEventRelationship.objects.all(): 
-            # topicObject = getTopicByTopicId(topicEventRelationship.topic)
-            # eventObject = getEventByEventId(topicEventRelationship.event)
             formatted.append(
                 {
                     "eventName": topicEventRelationship.event.eventName,
@@ -31,17 +29,22 @@ class AdminTopicEventView(viewsets.ModelViewSet):
     def list(self, request): 
         utils = Utils()
         queryset = self.get_queryset()
-        print(queryset)
         return HttpResponse(
             json.dumps(
                 queryset
             )
         )
-        # return HttpResponse("Ok")
 
-    # def get(self, request): 
-    #     return HttpResponse("Ok")
+    @adminTopicEventDecorators.checkIfUserAdminForGET
+    def create(self, request): 
+        utils = Utils()
+        params = utils.getParamsFromRequest(request)
+        # lambda
+        # topicEventRelationship =  TopicEventRelationship(
+        #     topic
+        # )
+        return utils.returnValidResponse("Okkkkk")
 
-    # @classmethod
-    # def get_extra_actions(cls): 
-    #     return []
+    def retreive(self, request): 
+        utils = Utils()
+        return utils.returnValidResponse("Okkkkk")

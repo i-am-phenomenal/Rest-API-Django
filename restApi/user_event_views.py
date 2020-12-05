@@ -5,7 +5,7 @@ from .models import User, Event, UserEventRelationship
 from rest_framework.authtoken.models import Token 
 from .utils import Utils
 from .authentication import Authentication
-from .decorators import Decorators
+from .Decorators.decorators import Decorators
 from .userUtils import UserUtils
 
 class UserEventViews(View, UserUtils, Utils):

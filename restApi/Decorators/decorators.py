@@ -1,9 +1,9 @@
-from .utils import Utils
-from .authentication import Authentication
+from ..utils import Utils
+from ..authentication import Authentication
 from rest_framework.authtoken.models import Token 
 import json 
-from .error_class import CustomException
-from .models import User, Topic
+from ..error_class import CustomException
+from ..models import User, Topic
 from django.http import HttpResponse
 
 class Decorators():

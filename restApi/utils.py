@@ -44,7 +44,7 @@ class Utils():
         time = ":".join([str(datetime.hour), str(datetime.minute), str(datetime.second)])
         return date + " " + time
 
-    def returnInvalidResponse(referenceToCurrentObj, message, statusCode): 
+    def returnInvalidResponse(referenceToCurrentObj, message, statusCode=500): 
         return HttpResponse(
             json.dumps(
                 referenceToCurrentObj.getBadResponse(message)

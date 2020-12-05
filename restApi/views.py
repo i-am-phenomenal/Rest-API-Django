@@ -11,7 +11,7 @@ from django.contrib.auth import authenticate
 from .utils import Utils
 from .error_class import CustomException
 from .authentication import Authentication
-from .decorators import Decorators
+from .Decorators.decorators import Decorators
 
 class SignUp(View, Utils):    
 
