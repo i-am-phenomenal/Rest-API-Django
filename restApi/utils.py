@@ -52,3 +52,9 @@ class Utils():
             status=statusCode
         )
 
+    def returnValidResponse(referenceToCurrentObj, message): 
+        return HttpResponse(
+            json.dumps(
+                referenceToCurrentObj.getGoodResponse(message)
+            )
+        )
