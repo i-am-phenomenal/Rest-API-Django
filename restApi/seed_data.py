@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from .models import User, Topic, Event, UserEventRelationship, UserTopicRelationship
+from .models import User, Topic, Event, UserEventRelationship, UserTopicRelationship, TopicEventRelationship
 from django.contrib.auth.hashers import make_password
 from random import randint
 from .error_class import CustomException
@@ -82,6 +82,23 @@ def userExists(userId):
 def UserEventRelationshipDoesNotExist(userId, eventId): 
     return not (userExists(userId) and Event.objects.filter(id=eventId).exists())
 
+def populateTopicEventRelationshipsTable(): 
+    getTopicById = lambda topicId: Topic.objects.get(id=topicId)
+    getEventById = lambda eventId: Event.objects.get(id=eventId)
+    topicEventRelationshipExists = lambda topicId, eventId: TopicEventRelationship.objects.filter(topic=topicId, event=eventId).exists()
+    for iter in range(0, 20):
+        topicId = randint(0, 19)
+        eventId = randint(0, 19)
+        topicEventRelationship = TopicEventRelationship(
+            id = iter,
+            topic = getTopicById(topicId),
+            event = getEventById(eventId),
+        )
+        if topicEventRelationshipExists(topicId, eventId): 
+            pass
+        else:
+            topicEventRelationship.save()
+
 def populateUserEventRelationshipsTable(): 
     for iter in range(0, 20): 
         userId = randint(0, 19)
@@ -119,6 +136,7 @@ def populateTables(request):
     populateUserTopicRelationship()
     populateEventTable()
     populateUserEventRelationshipsTable()
+    populateTopicEventRelationshipsTable()
     return HttpResponse("Done")
 
 
