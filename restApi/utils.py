@@ -1,6 +1,7 @@
 import re
 import json 
 from datetime import datetime
+from django.http import HttpResponse
 
 class Utils(): 
     def contentTypeValid(self, contentType): 
@@ -42,3 +43,12 @@ class Utils():
         date = "/".join([str(datetime.year), str(datetime.month), str(datetime.day)])
         time = ":".join([str(datetime.hour), str(datetime.minute), str(datetime.second)])
         return date + " " + time
+
+    def returnInvalidResponse(referenceToCurrentObj, message, statusCode): 
+        return HttpResponse(
+            json.dumps(
+                referenceToCurrentObj.getBadResponse(message)
+            ), 
+            status=statusCode
+        )
+

@@ -41,15 +41,9 @@ class AdminEventView(View):
         utils = Utils()
         def innerFunction(referenceToCurrentObj, request): 
             params = utils.getParamsFromRequest(request)["event"]
-            if "id" in params or "eventName" in params:
-                return function(referenceToCurrentObj, request)
-            else: 
-                return HttpResponse(
-                    json.dumps(
-                        utils.getBadResponse("Event Id or Event Name not present !")
-                    ),
-                    status=400
-                )
+            condition = "id" in params or "eventName" in params
+            response = function(referenceToCurrentObj, request) if condition else utils.returnInvalidResponse("Event Id Or Name does not exist", 400)
+            return response
         return innerFunction
 
     def checkIfValidParamsPresent(function):
