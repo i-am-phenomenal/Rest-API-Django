@@ -5,9 +5,80 @@ from .models import User, Event, UserEventRelationship
 from .decorators import Decorators
 from .utils import Utils
 from .error_class  import CustomException
+from datetime import datetime
 
 class AdminEventView(View):
     decorators = Decorators()
+
+    def getEventObjectByIdOrName(self, params):
+        if "id" in params: 
+            eventObject = Event.objects.get(id=params["id"])
+            return eventObject
+        else: 
+            eventObject = Event.objects.get(eventName=params["eventName"])
+            return eventObject
+
+    def checkIfEventExists(function): 
+        utils = Utils()
+        def innerFunction(referenceToCurrentObj, request):
+            params = utils.getParamsFromRequest(request)["event"]
+            checkByEventId = lambda eventId: Event.objects.filter(id=eventId).exists()
+            checkByEventName = lambda eventName: Event.objects.filter(eventName=eventName).exists()
+            if "id" in params and checkByEventId(params["id"]):
+                return function(referenceToCurrentObj, request)
+            elif "eventName" in params and checkByEventName(params["eventName"]): 
+                return function(referenceToCurrentObj, request)
+            else: 
+                return HttpResponse(
+                    json.dumps(
+                        utils.getBadResponse("Event with given Id or Name does not exist")
+                    ),
+                    status=400
+                )
+        return innerFunction
+
+    def checkIfMandatoryFieldsPresent(function): 
+        utils = Utils()
+        def innerFunction(referenceToCurrentObj, request): 
+            params = utils.getParamsFromRequest(request)["event"]
+            if "id" in params or "eventName" in params:
+                return function(referenceToCurrentObj, request)
+            else: 
+                return HttpResponse(
+                    json.dumps(
+                        utils.getBadResponse("Event Id or Event Name not present !")
+                    ),
+                    status=400
+                )
+        return innerFunction
+
+    def checkIfValidParamsPresent(function):
+        utils = Utils()
+        def innerFunction(referenceToCurrentObj, request):
+            params = utils.getParamsFromRequest(request)
+            params = params["event"]
+            possibleKeys = [
+                "eventDescription",
+                "id",
+                "eventName",
+                "eventType",
+                "eventDate",
+                "eventDuration",
+                "eventHost",
+                "eventLocation"
+            ]
+            for key in params.keys():
+                if key in possibleKeys:
+                    pass
+                else:
+                    return HttpResponse(
+                        json.dumps(
+                            utils.getBadResponse("Invalid Param Key")
+                        ),
+                        status=500
+                    )
+            return function(referenceToCurrentObj, request)
+        return innerFunction
 
     def deleteAllEvents(self): 
         Event.objects.all().delete()
@@ -240,5 +311,19 @@ class AdminEventView(View):
             return self.deleteEventByParams(params["event"])
         
     @decorators.validateIfUserIsAdmin
+    @checkIfMandatoryFieldsPresent
+    @checkIfEventExists
+    @checkIfValidParamsPresent
     def put(self, request): 
-        return HttpResponse("Ok")
+        utils = Utils()
+        params = utils.getParamsFromRequest(request)["event"]
+        params["updatedAt"] = datetime.now()
+        eventObject = self.getEventObjectByIdOrName(params)
+        eventObject.__dict__update(params)
+        eventObject.save()
+        return HttpResponse(
+            json.dumps(
+                eventObject.__dict__()
+            ),
+            status=200
+        )
