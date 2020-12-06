@@ -35,15 +35,17 @@ class AdminTopicEventView(viewsets.ModelViewSet):
             )
         )
 
-    @adminTopicEventDecorators.checkIfUserAdminForGET
+    @adminTopicEventDecorators.checkIfUserAdmin
+    @adminTopicEventDecorators.checkIfParamsValid
+    @adminTopicEventDecorators.checkIfTopicAndEventDoesNotExist
     def create(self, request): 
         utils = Utils()
         params = utils.getParamsFromRequest(request)
-        # lambda
-        # topicEventRelationship =  TopicEventRelationship(
-        #     topic
+        # getTopicByTopicId =  lambda topicId: Topic.objects.
+        # topicEventRelationship = TopicEventRelationship(
+        #     topi
         # )
-        return utils.returnValidResponse("Okkkkk")
+        return utils.returnValidResponse("aslkdawndlwedk;lkj")
 
     def retreive(self, request): 
         utils = Utils()
