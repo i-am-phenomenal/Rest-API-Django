@@ -49,12 +49,14 @@ class Utils():
             json.dumps(
                 referenceToCurrentObj.getBadResponse(message)
             ), 
-            status=statusCode
+            status=statusCode,
+            content_type="application/json"
         )
 
     def returnValidResponse(referenceToCurrentObj, message): 
         return HttpResponse(
             json.dumps(
                 referenceToCurrentObj.getGoodResponse(message)
-            )
+            ),
+            content_type="application/json"
         )

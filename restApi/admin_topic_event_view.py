@@ -6,7 +6,22 @@ from django.http import HttpResponse
 from rest_framework import authentication, permissions
 import json
 from .utils import Utils
+from django.views import View
 from .Decorators.admin_topic_event_decorators import AdminTopicEventDecorator
+
+
+class GetAdminTopicView(viewsets.ModelViewSet):
+    queryset = TopicEventRelationship.objects.all()
+    authentication_classes = [authentication.TokenAuthentication]
+    serializer_class = AdminTopicEventSerializer
+
+    def getAllTopicEvents(self, request, topicId): 
+        return HttpResponse("Dummy response") 
+
+    @classmethod
+    def get_extra_actions(cls): 
+        return [] 
+
 
 class AdminTopicEventView(viewsets.ModelViewSet): 
     authentication_classes = [authentication.TokenAuthentication]
@@ -32,7 +47,8 @@ class AdminTopicEventView(viewsets.ModelViewSet):
         return HttpResponse(
             json.dumps(
                 queryset
-            )
+            ),
+            content_type="application/json"
         )
 
     @adminTopicEventDecorators.checkIfUserAdmin
@@ -50,7 +66,3 @@ class AdminTopicEventView(viewsets.ModelViewSet):
         )
         topicEventRelationship.save()
         return utils.returnValidResponse("Added Relationship between Topic and Event !")
-
-    def retreive(self, request): 
-        utils = Utils()
-        return utils.returnValidResponse("Okkkkk")
