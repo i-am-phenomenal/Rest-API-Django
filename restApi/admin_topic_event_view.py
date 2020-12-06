@@ -41,11 +41,15 @@ class AdminTopicEventView(viewsets.ModelViewSet):
     def create(self, request): 
         utils = Utils()
         params = utils.getParamsFromRequest(request)
-        # getTopicByTopicId =  lambda topicId: Topic.objects.
-        # topicEventRelationship = TopicEventRelationship(
-        #     topi
-        # )
-        return utils.returnValidResponse("aslkdawndlwedk;lkj")
+        getTopicByTopicId =  lambda topicId: Topic.objects.get(id=topicId)
+        getEventByEventId = lambda eventId: Event.objects.get(id=eventId)
+        topicEventRelationship = TopicEventRelationship(
+            topic=getTopicByTopicId(params["topic"]),
+            event=getEventByEventId(params["event"]),
+            id=params["id"]
+        )
+        topicEventRelationship.save()
+        return utils.returnValidResponse("Added Relationship between Topic and Event !")
 
     def retreive(self, request): 
         utils = Utils()

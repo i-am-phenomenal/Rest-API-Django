@@ -34,7 +34,8 @@ class AdminTopicEventDecorator():
             checkIfTopicExists = lambda topicId: Topic.objects.filter(id=topicId).exists()
             checkIfEventExists = lambda eventId: Event.objects.filter(id=eventId).exists()
             checkIfTopicEventRelationshipExists = lambda topicId, eventId: TopicEventRelationship.objects.filter(topic=topicId, event=eventId).exists()
-            successCondition = (checkIfTopicExists(params["topic"])) and (checkIfEventExists(params["event"])) and (not checkIfTopicEventRelationshipExists(params["topic"], params["event"]))
+            checkIfRelationshipWithIdExists = lambda topicEventRelationshipId:  TopicEventRelationship.objects.filter(id=topicEventRelationshipId).exists()
+            successCondition = (checkIfTopicExists(params["topic"])) and (checkIfEventExists(params["event"])) and (not checkIfTopicEventRelationshipExists(params["topic"], params["event"])) and (not checkIfRelationshipWithIdExists(params["id"]))
             response = function(referenceToCurrentObj, request) if successCondition else utils.returnInvalidResponse("Either topic or event does not exist or Topic Or Event relationship already exists !", 400)
             return response
         return innerFunction
