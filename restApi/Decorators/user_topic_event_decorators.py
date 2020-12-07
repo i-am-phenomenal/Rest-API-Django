@@ -1,5 +1,6 @@
 from ..utils import Utils
-from ..models import Topic, Event, TopicEventRelationship
+from ..models import Topic, Event, TopicEventRelationship, User
+from rest_framework.authtoken.models import Token
 
 
 class UserTopicEventDecorators():
@@ -43,5 +44,10 @@ class UserTopicEventDecorators():
     def getUserEmailFromAuthToken(self, function): 
         def innerFunction(referenceToCurrentObj, request): 
             utils = Utils()
-            # params = utils
-            pass
+            params = request.headers
+            authToken = params["Authorization"].split(" ")[1]
+            tokenObject = Token.objects.get(key=authToken)
+            userObject = User.objects.get(id=tokenObject.user_id)
+            return function(referenceToCurrentObj, request, userObject)
+        return innerFunction
+            
