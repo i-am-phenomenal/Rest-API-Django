@@ -10,23 +10,43 @@ from django.views import View
 from .Decorators.admin_topic_event_decorators import AdminTopicEventDecorator
 
 
-class GetAdminTopicView(viewsets.ModelViewSet):
-    queryset = TopicEventRelationship.objects.all()
-    authentication_classes = [authentication.TokenAuthentication]
-    serializer_class = AdminTopicEventSerializer
+class GetAdminTopicEventView(View):
 
-    def getAllTopicEvents(self, request, topicId): 
-        return HttpResponse("Dummy response") 
+    adminTopicEventDecorators = AdminTopicEventDecorator()
 
-    @classmethod
-    def get_extra_actions(cls): 
-        return [] 
-
+    @adminTopicEventDecorators.checkIfUserAdmin
+    @adminTopicEventDecorators.checkifTopicEventRelationshipExists
+    def get(self, request, topicEventRelationshipId): 
+        utils = Utils()
+        topicEventRelationship = TopicEventRelationship.objects.get(id=topicEventRelationshipId)
+        topic = topicEventRelationship.topic
+        event = topicEventRelationship.event
+        response = {
+            "topic": {
+                "topicName": topic.topicName,
+                "shortDesc": topic.shortDesc
+            },
+            "event": {
+                "eventName": event.eventName,
+                "eventDescription": event.eventDescription,
+                "eventType": event.eventType,
+                "eventDate": utils.convertDateTimeToString(event.eventDate),
+                "eventDuration": event.eventDuration,
+                "eventHost": event.eventHost,
+                "eventLocation": event.eventLocation
+            }
+        }
+        return HttpResponse(
+            json.dumps(
+                response
+            ),
+            content_type="application/json"
+        )
+    
 
 class AdminTopicEventView(viewsets.ModelViewSet): 
     authentication_classes = [authentication.TokenAuthentication]
     serializer_class = AdminTopicEventSerializer
-    # permission_classes = [permissions.IsAdminUser]
     queryset = TopicEventRelationship.objects.all()
     adminTopicEventDecorators = AdminTopicEventDecorator()
 

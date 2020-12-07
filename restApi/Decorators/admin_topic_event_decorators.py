@@ -5,16 +5,24 @@ from ..models import User, Topic, Event, TopicEventRelationship
 class AdminTopicEventDecorator(): 
     utils = Utils()
 
+    def checkifTopicEventRelationshipExists(self, function): 
+        def innerFunction(referenceToCurrentObj, request, topicEventRelationshipId): 
+            utils = Utils()
+            checkIfRelationshipExists = lambda topicEventRelationshipId: TopicEventRelationship.objects.filter(id=topicEventRelationshipId).exists()
+            response = function(referenceToCurrentObj, request, topicEventRelationshipId) if checkIfRelationshipExists(topicEventRelationshipId) else  utils.returnInvalidResponse("Topic Event Relationship does not exist", 400)
+            return response
+        return innerFunction
+
     def checkIfUserAdmin(self, function): 
-        def innerFunction(referenceToCurrentObject, request): 
-            params = request.headers
+        def innerFunction(*args, **kwargs):
+            params = args[1].headers
             authToken = params["Authorization"].split(" ")[1]
             tokenExistsCondition = lambda token: Token.objects.filter(key=token).exists()
             getUserByUserId = lambda userId: User.objects.get(id=userId)
             tokenObject = Token.objects.get(key=authToken) if tokenExistsCondition(authToken) else None
             userId = tokenObject.user_id if (tokenObject is not None) else None
             userObject = getUserByUserId(userId) if (userId is not None)  else None
-            response = function(referenceToCurrentObject, request) if (userObject is not None and userObject.isAdmin) else utils.returnInvalidResponse("User is not an Admin. Hence cant acces the API ", 401)
+            response = function(*args, **kwargs) if (userObject is not None and userObject.isAdmin) else utils.returnInvalidResponse("User is not an Admin. Hence cant acces the API ", 401)
             return response
         return innerFunction
 
