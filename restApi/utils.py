@@ -39,6 +39,11 @@ class Utils():
         params = json.loads(params)
         return params
 
+    def getQueryParameters(self, request, queryParamKey):
+        params = request.GET.get(queryParamKey)
+        params = json.loads(params)
+        return params
+
     def convertDateTimeToString(self, datetime): 
         date = "/".join([str(datetime.year), str(datetime.month), str(datetime.day)])
         time = ":".join([str(datetime.hour), str(datetime.minute), str(datetime.second)])

@@ -11,7 +11,11 @@ class UserTopicEventView(View):
 
     @commonDecorators.validateToken
     @decorators.validateParams
-    @decorators.checkIfTopicAndEventExists
-    def post(self, request):
-        return HttpResponse("Ojk")
+    # @decorators.checkIfTopicAndEventExists
+    # @decorators.ifUserSubscribedToTopic
+    def get(self, request):
+        params = request.GET.get("params")
+        return HttpResponse("LOKI")
+        
+        
         
