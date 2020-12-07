@@ -93,4 +93,3 @@ class AdminTopicEventDecorator():
                     response = function(referenceToCurrentObj, request) if checkIfRecordsExistsByTopicId(topicId, eventId) else utils.returnInvalidResponse("No records found in the Topic Event Relationship resource with the event id {eventId} and topic id {topicId}".format(eventId=eventId, topicId=topicId), 400)
                     return response
         return innerFunction
-            
