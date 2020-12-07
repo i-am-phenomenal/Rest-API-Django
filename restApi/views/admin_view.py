@@ -1,9 +1,9 @@
 from django.http import HttpResponse
 from django.views import View
 import json
-from .models import User, Event, UserEventRelationship
-from .Decorators.decorators import Decorators
-from .utils import Utils
+from ..models import User, Event, UserEventRelationship
+from ..Decorators.decorators import Decorators
+from ..utils import Utils
 
 class AdminView(View): 
     

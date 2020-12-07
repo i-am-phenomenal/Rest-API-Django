@@ -4,14 +4,14 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password, check_password
 import json
-from .models import User, Topic, UserTopicRelationship, Event
+from ..models import User, Topic, UserTopicRelationship, Event
 import re
 from rest_framework.authtoken.models import Token 
 from django.contrib.auth import authenticate
-from .utils import Utils
-from .error_class import CustomException
-from .authentication import Authentication
-from .Decorators.decorators import Decorators
+from ..utils import Utils
+from ..error_class import CustomException
+from ..authentication import Authentication
+from ..Decorators.decorators import Decorators
 
 class SignUp(View, Utils):    
 

@@ -1,11 +1,11 @@
 import json 
-from .models import User, Event
-from .utils import Utils
+from ..models import User, Event
+from ..utils import Utils
 from django.http import HttpResponse
-from .error_class import CustomException
+from ..error_class import CustomException
 from django.views import View
-from .authentication import Authentication
-from .Decorators.decorators import Decorators
+from ..authentication import Authentication
+from ..Decorators.decorators import Decorators
 
 
 class EventView(View, Utils, Decorators):

@@ -1,9 +1,10 @@
 from rest_framework import viewsets 
-from .admin_topic_serializer import AdminTopicSerializer
-from .models import Topic
+from ..admin_topic_serializer import AdminTopicSerializer
+from ..models import Topic
 from django.views import View
-from .Decorators.admin_topic_decorators import AdminTopicDecorators
-from .Decorators.admin_topic_event_decorators import AdminTopicEventDecorator
+from ..Decorators.admin_topic_decorators import AdminTopicDecorators
+from ..Decorators.admin_topic_event_decorators import AdminTopicEventDecorator
+from ..utils import Utils
 
 class AdminTopicView(viewsets.ModelViewSet):
     serializer_class = AdminTopicSerializer

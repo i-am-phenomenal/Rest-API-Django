@@ -1,12 +1,12 @@
 from django.http import HttpResponse
 from django.views import View
 import json
-from .models import User, Event, UserEventRelationship
+from ..models import User, Event, UserEventRelationship
 from rest_framework.authtoken.models import Token 
-from .utils import Utils
-from .authentication import Authentication
-from .Decorators.decorators import Decorators
-from .userUtils import UserUtils
+from ..utils import Utils
+from ..authentication import Authentication
+from ..Decorators.decorators import Decorators
+from ..userUtils import UserUtils
 
 class UserEventViews(View, UserUtils, Utils):
     decorators = Decorators()

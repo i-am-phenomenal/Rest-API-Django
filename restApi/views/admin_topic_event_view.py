@@ -1,13 +1,13 @@
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .admin_topic_event_serializer import AdminTopicEventSerializer
-from .models import TopicEventRelationship, Topic, Event
+from ..admin_topic_event_serializer import AdminTopicEventSerializer
+from ..models import TopicEventRelationship, Topic, Event
 from django.http import HttpResponse
 from rest_framework import authentication, permissions
 import json
-from .utils import Utils
+from ..utils import Utils
 from django.views import View
-from .Decorators.admin_topic_event_decorators import AdminTopicEventDecorator
+from ..Decorators.admin_topic_event_decorators import AdminTopicEventDecorator
 
 
 class GetAdminTopicEventView(View):
