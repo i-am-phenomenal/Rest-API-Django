@@ -47,3 +47,50 @@ class AdminTopicEventDecorator():
             response = function(referenceToCurrentObj, request) if successCondition else utils.returnInvalidResponse("Either topic or event does not exist or Topic Or Event relationship already exists !", 400)
             return response
         return innerFunction
+
+    def checkIfDeleteParamsValid(self, function):
+        def innerFunction(referenceToCurrentObj, request): 
+            utils = Utils()
+            params = utils.getParamsFromRequest(request)
+            paramsLength = len(params)
+            if paramsLength > 2: 
+                return utils.returnInvalidResponse("Length of Params > 2")
+            else:
+                successCondition = ("eventId" in params or "topicId" in params or "id" in params) if paramsLength == 1 else ("eventId" in params and "topicId" in params)
+                response = function(referenceToCurrentObj, request) if successCondition else utils.returnInvalidResponse("Invalid Params", 400)
+                return response
+        return innerFunction
+
+    def checkIfRecordExistsBasedOnParams(self, function): 
+        def innerFunction(referenceToCurrentObj, request): 
+            utils = Utils()
+            params = utils.getParamsFromRequest(request)
+            paramsLength = len(params)
+            if paramsLength == 1:
+                if "topicId" in params:
+                    topicId  = params["topicId"] 
+                    checkIfRecordsExistByTopicId = lambda topicId: TopicEventRelationship.objects.filter(topic=topicId).exists()
+                    response = function(referenceToCurrentObj, request) if checkIfRecordsExistByTopicId(topicId) else utils.returnInvalidResponse("No records found in the Topic Event Relationship resource with the topic id {topicId}".format(topicId=topicId), 400)
+                    return response
+                
+                elif "eventId" in params: 
+                    eventId = params["eventId"]
+                    checkIfRecordsExistsByEventId = lambda eventId: TopicEventRelationship.objects.filter(event=eventId).exists()
+                    response = function(referenceToCurrentObj, request) if checkIfRecordsExistsByEventId else utils.returnInvalidResponse("No records found in the Topic Event Relationship resource with the event id {eventId}".format(eventId=eventId), 400)
+                    return response
+
+                elif "id" in params: 
+                    topicEventRelationshipId = params["id"]
+                    checkIfRecordExistsById = lambda topicEventRelationshipId: TopicEventRelationship.objects.filter(id=topicEventRelationshipId).exists()
+                    response = function(referenceToCurrentObj, request) if checkIfRecordExistsById(topicEventRelationshipId) else utils.returnInvalidResponse("No records found in the Topic Event Relationship resource with the id {id}".format(id=topicEventRelationshipId), 400)
+                    return response
+
+            elif paramsLength == 2: 
+                if "topicId" in params and "eventId" in params: 
+                    topicId = params["topicId"]
+                    eventId = params["eventId"]
+                    checkIfRecordsExistsByTopicId = lambda topicId, eventId: TopicEventRelationship.objects.filter(topic=topicId, event=eventId).exists()
+                    response = function(referenceToCurrentObj, request) if checkIfRecordsExistsByTopicId(topicId, eventId) else utils.returnInvalidResponse("No records found in the Topic Event Relationship resource with the event id {eventId} and topic id {topicId}".format(eventId=eventId, topicId=topicId), 400)
+                    return response
+        return innerFunction
+            
