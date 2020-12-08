@@ -113,7 +113,7 @@ def populateUserEventRelationshipsTable():
             userEventRelationship.save()
 
 def userTopicRelationshipDoesNotExist(userId, topicId): 
-    return not (userExists(userId) and Topic.objects.filter(id=topicId).exists())
+    return (userExists(userId) and Topic.objects.filter(id=topicId).exists()) and not (UserTopicRelationship.objects.filter(userId=userId, topicId=topicId).exists())
 
 def populateUserTopicRelationship(): 
     for iter in range(0, 20): 
