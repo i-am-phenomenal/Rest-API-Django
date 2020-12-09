@@ -19,6 +19,7 @@ router.register(r"admintopic", admin_topic_view.AdminTopicView, "restApi")
 router.register(r"admin_topic_event", admin_topic_event_view.AdminTopicEventView, "restApi")
 
 urlpatterns = [
+    path('admin/', admin.site.urls),
     path("add_admin/", admin_view.AdminView.as_view()),
     path("api/admin_topic_event/<int:topicEventRelationshipId>/", admin_topic_event_view.GetAdminTopicEventView.as_view()),
     path("api/", include(router.urls)),

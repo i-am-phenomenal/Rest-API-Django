@@ -40,7 +40,7 @@ class UserTopicEventView(View):
         # print(userTopicRelationshipExists(topicId, userId), "XXXXXXXXXXXXXXXXXXXXXXXXX")
 
         records = self.getEventsByTopicIdAndUserId(topicId, userId) if userTopicRelationshipExists(topicId, userId) else self.getEventsForUserSubscribedTopics(userId)
-        response = records if (records != []) else 
+        # response = records if (records != []) else 
         # topicEventRelationshipExists = lambda topicId:  TopicEventRelationship.objects.filter(topic=topicId).exists()
         # getTopicEventRelationshipsByTopicId = lambda topicId: list(TopicEventRelationship.objects.get(topic=topicId).all())
         # getUserTopicRelationships = lambda topicId, userId: UserTopicRelationship.objects.get(userId=userId, topicId=topicId)

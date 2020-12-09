@@ -1,6 +1,28 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser
-# Create your models here.
+# from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
+from django.contrib.auth import authenticate
+
+class UserAccountManager(BaseUserManager):
+    def create_user(self, id, password=None):
+        if not id:
+            raise ValueError('Email must be set!')
+        user = self.model(id=id, fullName="Aditya Chaturvedi", password=password, age=23, isAdmin=True)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, id, password):
+        user = self.create_user(id, password)
+        user.is_admin = True
+        user.save(using=self._db)
+        return user
+
+    def get_by_natural_key(self, id):
+        # user = authenticate(emailId=emailId)
+        user = self.get(id=id)
+        print("111111111111111111111", user)
+        return user
 
 class User(AbstractBaseUser, models.Model):     
     id = models.AutoField(primary_key=True)
@@ -13,6 +35,27 @@ class User(AbstractBaseUser, models.Model):
     isAdmin = models.BooleanField(default=False)
     REQUIRED_FIELDS = ('password',)
     USERNAME_FIELD = 'id'
+
+    objects = UserAccountManager()
+
+    def get_short_name(self):
+        return self.emailId
+
+    def get_full_name(self):
+        return  self.emailId
+
+    def has_perms(self, perm, ob=None):
+        return True
+
+    def has_module_perms(self, app_label):
+        return True
+
+    def natural_key(self):
+        return self.emailId
+
+    @property
+    def is_staff(self):
+        self.isAdmin
 
 
 class Topic(models.Model):
@@ -64,3 +107,35 @@ class TopicEventRelationship(models.Model):
 
     class Meta: 
         unique_together= ("topic", "event")
+
+
+# class UserAccount(AbstractBaseUser):
+#     email = models.EmailField(unique=True)
+#     first_name = models.CharField(max_length=128)
+#     last_name = models.CharField(max_length=128)
+#     is_active = models.BooleanField(default=True) # default=False when you are going to implement Activation Mail
+#     is_admin = models.BooleanField(default=False)
+
+#     objects = UserAccountManager()
+
+#     USERNAME_FIELD = 'email'
+#     REQUIRED_FIELDS = ['first_name', 'last_name']
+
+#     def get_short_name(self):
+#         return self.email
+
+#     def get_full_name(self):
+#         return  self.email
+
+#     def has_perms(self, perm, ob=None):
+#         return True
+
+#     def has_module_perms(self, app_label):
+#         return True
+
+#     def natural_key(self):
+#         return self.email
+
+#     @property
+#     def is_staff(self):
+#         self.is_admin
