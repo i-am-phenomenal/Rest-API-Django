@@ -57,9 +57,6 @@ class User(AbstractBaseUser, models.Model):
     def is_staff(self):
         self.isAdmin
 
-class TopicManager(models.Manager): 
-    def topicNames(self): 
-        return self.filter(id__lt = 5)
 
 class Topic(models.Model):
     id = models.AutoField(primary_key=True)
@@ -67,8 +64,6 @@ class Topic(models.Model):
     shortDesc = models.CharField(max_length=40)
     insertedAt = models.DateTimeField(auto_now=True)
     updatedAt = models.DateTimeField(auto_now=True)
-
-    objects = TopicManager()
 
 class UserTopicRelationship(models.Model): 
     id = models.AutoField(primary_key=True)
@@ -112,6 +107,7 @@ class TopicEventRelationship(models.Model):
 
     class Meta: 
         unique_together= ("topic", "event")
+
 
 # class UserAccount(AbstractBaseUser):
 #     email = models.EmailField(unique=True)
