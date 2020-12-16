@@ -143,3 +143,5 @@ class TopicEventRelationship(models.Model):
 #     @property
 #     def is_staff(self):
 #         self.is_admin
+
+# TO BE REVERSED
