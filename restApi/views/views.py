@@ -226,49 +226,52 @@ class TopicOfInterest(View, Utils, Authentication, Decorators):
                     status=200
                 )
 
-    @decorators.validateToken
-    @decorators.validateHeaders
+    # @decorators.validateToken
+    # @decorators.validateHeaders
     def get(self, request): 
-        queryParam = request.GET.get("name_or_id")
-        try: 
-            converted = int(queryParam)
-            topicObject = self.getTopicByTopicId(converted)
-            if topicObject is not None:
-                response = {
-                    "topicName": topicObject.topicName,
-                    "shortDesc": topicObject.shortDesc
-                }
-                return HttpResponse(
-                    json.dumps(
-                        response
-                    ),
-                    status=200
-                )
-            else: 
-                return HttpResponse(
-                    json.dumps(
-                        utils.getBadResponse("Topic Does not exist")
-                    )
-                )
-        except ValueError: 
-            topicObject = Topic.objects.get(topicName=queryParam.strip())
-            if topicObject is not None: 
-                response = {
-                    "topicName": topicObject.topicName,
-                    "shortDesc": topicObject.shortDesc
-                }
-                return HttpResponse(
-                    json.dumps(
-                        response
-                    ),
-                    status=200
-                )
-            else: 
-                return HttpResponse(
-                    json.dumps(
-                        utils.getBadResponse("Topic Does not exist")
-                    )
-                )
+        objects = Topic.objects.topicNames()
+        print(objects, "1111111111111")
+        return HttpResponse("Ok")
+        # queryParam = request.GET.get("name_or_id")
+        # try: 
+        #     converted = int(queryParam)
+        #     topicObject = self.getTopicByTopicId(converted)
+        #     if topicObject is not None:
+        #         response = {
+        #             "topicName": topicObject.topicName,
+        #             "shortDesc": topicObject.shortDesc
+        #         }
+        #         return HttpResponse(
+        #             json.dumps(
+        #                 response
+        #             ),
+        #             status=200
+        #         )
+        #     else: 
+        #         return HttpResponse(
+        #             json.dumps(
+        #                 utils.getBadResponse("Topic Does not exist")
+        #             )
+        #         )
+        # except ValueError: 
+        #     topicObject = Topic.objects.get(topicName=queryParam.strip())
+        #     if topicObject is not None: 
+        #         response = {
+        #             "topicName": topicObject.topicName,
+        #             "shortDesc": topicObject.shortDesc
+        #         }
+        #         return HttpResponse(
+        #             json.dumps(
+        #                 response
+        #             ),
+        #             status=200
+        #         )
+        #     else: 
+        #         return HttpResponse(
+        #             json.dumps(
+        #                 utils.getBadResponse("Topic Does not exist")
+        #             )
+        #         )
 
 
 class UserTopic(View, Utils, Authentication, Decorators): 
